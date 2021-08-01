@@ -1,0 +1,44 @@
+begin:control
+    nx = 250
+    ny = 250
+    t_end = 5e-14
+    x_min = -9.999999999999999e-06
+    x_max = 9.999999999999999e-06
+    y_min = -9.999999999999999e-06
+    y_max = 9.999999999999999e-06
+end:control
+
+begin:boundaries
+    bc_x_min = simple_laser
+    bc_x_max = simple_outflow
+    bc_y_min = periodic
+    bc_y_max = periodic
+end:boundaries
+
+begin:species
+    name = proton
+    charge = 1.0
+    mass = 1836.1526734400013
+    nparticles_per_cell = 4
+    number_density = if((x gt 3*1e-06 + 5e-07), 0.0, if((x gt 3*1e-06 - 5e-07) and (x lt 3*1e-06 + 5e-07) and (r lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2) gt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07) and (sqrt(y^2) lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
+end:species
+
+begin:species
+    name = electron
+    charge = -1.0
+    mass = 1.0
+    nparticles_per_cell = 4
+    number_density = if((x gt 3*1e-06 + 5e-07), 0.0, if((x gt 3*1e-06 - 5e-07) and (x lt 3*1e-06 + 5e-07) and (r lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2) gt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07) and (sqrt(y^2) lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
+end:species
+
+begin:constant
+    r = sqrt((y - 0.0)^2)
+end:constant
+
+begin:laser
+    boundary = x_min
+    amp = 10000000000000.0
+    lambda = 1.06e-06
+    profile = gauss(r, 0.0, 2.4999999999999998e-06)
+end:laser
+
