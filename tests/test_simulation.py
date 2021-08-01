@@ -94,6 +94,24 @@ class TestShell(unittest.TestCase):
             normal_vector=[1, 0]  # TODO check it
         )
 
+        normal_diag_particles = picmi.ParticleDiagnostic(
+            period=1,
+            species=None,  # all
+            data_list=["position", "momentum", "weighting"],
+            name="normal"
+        )
+
+        normal_diag_field = picmi.FieldDiagnostic(
+            grid=grid,
+            period=1,
+            data_list=["E"],
+            name="normal"
+        )
+
+        simulation.add_diagnostic(normal_diag_particles)
+        simulation.add_diagnostic(normal_diag_field)
+
+
         simulation.add_laser(laser, injection_method=antena)
 
         simulation.add_species(plasma, plasma_layout)

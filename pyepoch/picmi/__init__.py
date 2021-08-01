@@ -5,7 +5,7 @@ from pyepoch.picmi.grids import Cartesian2DGrid
 from pyepoch.picmi.solvers import ElectromagneticSolver
 from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, AnalyticDistribution, Species
 from pyepoch.picmi.lasers import LaserAntenna, GaussianLaser
-
+from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
 
 class Constants:
     m_e = m_e
