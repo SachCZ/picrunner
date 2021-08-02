@@ -1,3 +1,4 @@
+import itertools
 import math
 from copy import deepcopy
 
@@ -5,6 +6,7 @@ import picmistandard
 from pyepoch.picmi.grids import Cartesian2DGrid
 from pyepoch.picmi.particles import MultiSpecies, AnalyticDistribution
 from pyepoch.picmi.fbpic_charge_and_mass import particle_charge, particle_mass
+from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
 
 
 class Simulation(picmistandard.PICMI_Simulation):
@@ -22,6 +24,19 @@ class Simulation(picmistandard.PICMI_Simulation):
                 self._write_species(s, layout, f)
             for laser, method in zip(self.lasers, self.laser_injection_methods):
                 self._write_laser(laser, method, f)
+            particle_diag = [diag for diag in self.diagnostics if isinstance(diag, ParticleDiagnostic)]
+            field_diag = [diag for diag in self.diagnostics if isinstance(diag, FieldDiagnostic)]
+            reduced_field_diag = []
+            for pd, fd in itertools.product(particle_diag, field_diag):
+                if pd.name == fd.name:
+                    if pd.period != fd.period:
+                        raise Exception("Diagnostics with same name must have same period")
+                    pd.data_list += fd.data_list
+                else:
+                    reduced_field_diag.append(fd)
+            diagnostics = particle_diag + reduced_field_diag
+            for diag in diagnostics:
+                self._write_diagnostics(diag, self.solver.grid, f)
 
     def _get_layout_species(self):
         for s, layout in zip(self.species, self.layouts):
@@ -100,3 +115,24 @@ class Simulation(picmistandard.PICMI_Simulation):
         opened_file.write("    lambda = {}\n".format(laser.wavelength))
         opened_file.write("    profile = gauss(r, 0.0, {})\n".format(laser.waist * math.sqrt(2) / 2))
         opened_file.write("end:laser\n\n")
+
+    def _write_diagnostics(self, diag, grid, opened_file):
+        if not isinstance(grid, Cartesian2DGrid):
+            raise Exception("Only 2DGrid is supported")
+
+        opened_file.write("begin:output\n")
+        opened_file.write("    name = {}\n".format(diag.name))
+        opened_file.write("    nstep_snapshot = {}\n".format(diag.period))
+        if "position" in diag.data_list:
+            opened_file.write("    particles = always\n")
+        if "momentum" in diag.data_list:
+            opened_file.write("    px = always\n")
+            opened_file.write("    py = always\n")
+        if "weighting" in diag.data_list:
+            opened_file.write("    particle_weight = always\n")
+        if "E" in diag.data_list:
+            opened_file.write("    grid = always\n")  # TODO this doesnt scale at all
+            opened_file.write("    ex = always\n")
+            opened_file.write("    ey = always\n")
+
+        opened_file.write("end:output\n\n")

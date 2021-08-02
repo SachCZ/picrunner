@@ -42,3 +42,15 @@ begin:laser
     profile = gauss(r, 0.0, 2.4999999999999998e-06)
 end:laser
 
+begin:output
+    name = normal
+    nstep_snapshot = 1
+    particles = always
+    px = always
+    py = always
+    particle_weight = always
+    grid = always
+    ex = always
+    ey = always
+end:output
+
