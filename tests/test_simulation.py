@@ -33,7 +33,8 @@ class TestShell(unittest.TestCase):
             bc_xmin="simple_laser",  # simple_laser is not standard
             bc_xmax="simple_outflow",  # simple_outflow is not standard
             bc_ymin="periodic",
-            bc_ymax="periodic"
+            bc_ymax="periodic",
+            epoch_enable_bcs=True
         )
         solver = picmi.ElectromagneticSolver(grid)
         simulation = picmi.Simulation(solver, max_time=max_time)
