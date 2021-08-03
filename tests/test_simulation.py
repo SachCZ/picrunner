@@ -53,9 +53,10 @@ class TestShell(unittest.TestCase):
             ro=ro,
             den_cone=den_cone
         )
-        initial_density = "where((x > {xi}) & (x < {xo}) & (r < {ri}), {den_cone}, {dens})".format(
+        initial_density = "where((x > {xi}) & (x < {xo}) & ({r} < {ri}), {den_cone}, {dens})".format(
             xi=xi,
             xo=xo,
+            r=r,
             ri=ri,
             den_cone=den_cone,
             dens=initial_density
@@ -78,9 +79,8 @@ class TestShell(unittest.TestCase):
             initial_distribution=plasma_distribution
         )
 
-        plasma_layout = picmi.GriddedLayout(
-            grid=grid,
-            n_macroparticle_per_cell=4
+        plasma_layout = picmi.PseudoRandomLayout(
+            n_macroparticles=4 * 250 * 250
         )
 
         laser = picmi.GaussianLaser(
@@ -95,7 +95,7 @@ class TestShell(unittest.TestCase):
         )
 
         normal_diag_particles = picmi.ParticleDiagnostic(
-            period=1,
+            epoch_dt_snapshot=1 * femto,
             species=None,  # all
             data_list=["position", "momentum", "weighting"],
             name="normal"
@@ -103,14 +103,13 @@ class TestShell(unittest.TestCase):
 
         normal_diag_field = picmi.FieldDiagnostic(
             grid=grid,
-            period=1,
+            epoch_dt_snapshot=1 * femto,
             data_list=["E"],
             name="normal"
         )
 
         simulation.add_diagnostic(normal_diag_particles)
         simulation.add_diagnostic(normal_diag_field)
-
 
         simulation.add_laser(laser, injection_method=antena)
 

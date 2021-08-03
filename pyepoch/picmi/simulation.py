@@ -7,6 +7,7 @@ from pyepoch.picmi.grids import Cartesian2DGrid
 from pyepoch.picmi.particles import MultiSpecies, AnalyticDistribution
 from pyepoch.picmi.fbpic_charge_and_mass import particle_charge, particle_mass
 from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
+from pyepoch.picmi.particles import GriddedLayout, PseudoRandomLayout
 
 
 class Simulation(picmistandard.PICMI_Simulation):
@@ -29,7 +30,7 @@ class Simulation(picmistandard.PICMI_Simulation):
             reduced_field_diag = []
             for pd, fd in itertools.product(particle_diag, field_diag):
                 if pd.name == fd.name:
-                    if pd.period != fd.period:
+                    if pd.period != fd.period or pd.dt_snapshot != fd.dt_snapshot:
                         raise Exception("Diagnostics with same name must have same period")
                     pd.data_list += fd.data_list
                 else:
@@ -76,7 +77,10 @@ class Simulation(picmistandard.PICMI_Simulation):
         opened_file.write("    name = {}\n".format(s.name))
         opened_file.write("    charge = {}\n".format(charge / particle_charge["proton"]))
         opened_file.write("    mass = {}\n".format(mass / particle_mass["electron"]))
-        opened_file.write("    nparticles_per_cell = {}\n".format(layout.n_macroparticle_per_cell))
+        if isinstance(layout, GriddedLayout):
+            opened_file.write("    nparticles_per_cell = {}\n".format(layout.n_macroparticle_per_cell))
+        elif isinstance(layout, PseudoRandomLayout):
+            opened_file.write("    nparticles = {}\n".format(layout.n_macroparticles))
         if isinstance(s.initial_distribution, AnalyticDistribution):
             opened_file.write("    number_density = {}\n".format(s.initial_distribution.get_parsed_density_expresion()))
         else:
@@ -122,7 +126,10 @@ class Simulation(picmistandard.PICMI_Simulation):
 
         opened_file.write("begin:output\n")
         opened_file.write("    name = {}\n".format(diag.name))
-        opened_file.write("    nstep_snapshot = {}\n".format(diag.period))
+        if diag.dt_snapshot:
+            opened_file.write("    dt_snapshot = {}\n".format(diag.dt_snapshot))
+        else:
+            opened_file.write("    nstep_snapshot = {}\n".format(diag.period))
         if "position" in diag.data_list:
             opened_file.write("    particles = always\n")
         if "momentum" in diag.data_list:

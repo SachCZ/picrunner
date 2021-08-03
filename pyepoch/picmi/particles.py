@@ -38,3 +38,8 @@ class AnalyticDistribution(picmistandard.PICMI_AnalyticDistribution):
 class GriddedLayout(picmistandard.PICMI_GriddedLayout):
     def init(self, kw):
         pass
+
+
+class PseudoRandomLayout(picmistandard.PICMI_PseudoRandomLayout):
+    def init(self, kw):
+        pass

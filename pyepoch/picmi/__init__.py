@@ -3,7 +3,7 @@ from scipy.constants import m_e, c, e
 from pyepoch.picmi.simulation import Simulation
 from pyepoch.picmi.grids import Cartesian2DGrid
 from pyepoch.picmi.solvers import ElectromagneticSolver
-from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, AnalyticDistribution, Species
+from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, AnalyticDistribution, Species, PseudoRandomLayout
 from pyepoch.picmi.lasers import LaserAntenna, GaussianLaser
 from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
 
