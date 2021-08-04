@@ -4,7 +4,7 @@ from io import StringIO
 from pyepoch import picmi
 from scipy.constants import e, m_p, m_e
 from pyepoch.picmi.parsers import write_control, write_boundaries, parse_expression, parse_layouts_species, \
-    infer_charge_mass, write_species
+    infer_charge_mass, write_species, parse_diagnostics, write_diagnostic
 
 
 class TestParsers(unittest.TestCase):
@@ -148,4 +148,55 @@ class TestParsers(unittest.TestCase):
             "    nparticles = 2000\n"
             "    number_density = if(x gt 5, 10, 0)\n"
             "end:species\n\n"
+        ))
+
+    def test_parse_diagnostics(self):
+        diagnostics = [picmi.FieldDiagnostic(
+            grid=1,
+            name="normal",
+            period=10,
+            data_list=["E"]
+        ), picmi.ParticleDiagnostic(
+            name="normal",
+            period=10,
+            data_list=["weighting"]
+        ), picmi.ParticleDiagnostic(
+            name="large",
+            epoch_dt_snapshot=1e-3,
+            data_list=["position"]
+        )]
+
+        result = parse_diagnostics(diagnostics)
+        self.assertEqual(len(result), 2)
+        self.assertDictEqual(result[0], {
+            "name": "normal",
+            "period": 10,
+            "data_list": ["weighting", "E"]
+        })
+        self.assertDictEqual(result[1], {
+            "name": "large",
+            "dt_snapshot": 1e-3,
+            "data_list": ["position"]
+        })
+
+    def test_write_diagnostic(self):
+        diagnostic = {
+            "name": "normal",
+            "period": 10,
+            "data_list": ["weighting", "E"]
+        }
+
+        with StringIO("") as s:
+            write_diagnostic(diagnostic, 2, s)
+            result = s.getvalue()
+
+        self.assertEqual(result, (
+            "begin:output\n"
+            "    name = normal\n"
+            "    nstep_snapshot = 10\n"
+            "    particle_weight = always\n"
+            "    grid = always\n"
+            "    ex = always\n"
+            "    ey = always\n"
+            "end:output\n\n"
         ))

@@ -31,17 +31,6 @@ begin:species
     number_density = if((x  gt  3*1e-06 + 5e-07), 0.0, if((x  gt  3*1e-06 - 5e-07)  and  (x  lt  3*1e-06 + 5e-07)  and  (sqrt(y^2)  lt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2)  gt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07)  and  (sqrt(y^2)  lt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
 end:species
 
-begin:constant
-    r = sqrt((y - 0.0)^2)
-end:constant
-
-begin:laser
-    boundary = x_min
-    amp = 10000000000000.0
-    lambda = 1.06e-06
-    profile = gauss(r, 0.0, 2.4999999999999998e-06)
-end:laser
-
 begin:output
     name = normal
     dt_snapshot = 1e-15
@@ -53,4 +42,15 @@ begin:output
     ex = always
     ey = always
 end:output
+
+begin:constant
+    r = sqrt((y - 0.0)^2)
+end:constant
+
+begin:laser
+    boundary = x_min
+    amp = 10000000000000.0
+    lambda = 1.06e-06
+    profile = gauss(r, 0.0, 2.4999999999999998e-06)
+end:laser
 

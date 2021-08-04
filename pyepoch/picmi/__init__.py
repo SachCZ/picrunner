@@ -7,7 +7,8 @@ from pyepoch.picmi.solvers import ElectromagneticSolver, ElectrostaticSolver, In
 from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, AnalyticDistribution, Species, PseudoRandomLayout, \
     UniformDistribution, ParticleListDistribution, GaussianBunchDistribution
 from pyepoch.picmi.lasers import LaserAntenna, GaussianLaser
-from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
+from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic, ElectrostaticFieldDiagnostic, \
+    LabFrameFieldDiagnostic, LabFrameParticleDiagnostic, InvalidDataError
 from pyepoch.picmi.applied_fields import AnalyticAppliedField, ConstantAppliedField, Mirror
 
 

@@ -94,7 +94,6 @@ class TestShell(unittest.TestCase):
 
         normal_diag_particles = picmi.ParticleDiagnostic(
             epoch_dt_snapshot=1 * femto,
-            species=None,  # all
             data_list=["position", "momentum", "weighting"],
             name="normal"
         )

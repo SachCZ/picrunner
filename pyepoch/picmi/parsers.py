@@ -1,6 +1,9 @@
+import itertools
 from copy import copy
 
-from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, PseudoRandomLayout
+from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
+from pyepoch.picmi.exceptions import PyEpochError
+from pyepoch.picmi.particles import MultiSpecies
 from pyepoch.picmi.fbpic_charge_and_mass import particle_charge, particle_mass
 
 
@@ -74,3 +77,76 @@ def write_species(parsed_species, opened_file):
 def parse_expression(expression):
     expression = expression.replace("where", "if").replace("&", " and ").replace(">", " gt ")
     return expression.replace("<", " lt ").replace("==", " eq ").replace("|", " or ")
+
+
+class ParsingError(PyEpochError):
+    pass
+
+
+def _parse_one_diagnostic(name, data_list, period=None, dt_snapshot=None):
+    result = {
+        "name": name,
+        "data_list": data_list
+    }
+    if dt_snapshot:
+        result["dt_snapshot"] = dt_snapshot
+    elif period:
+        result["period"] = period
+    else:
+        raise Exception("Fatal error")
+    return result
+
+
+def parse_diagnostics(diagnostics):
+    particle_diag = [diag for diag in diagnostics if isinstance(diag, ParticleDiagnostic)]
+    field_diag = [diag for diag in diagnostics if isinstance(diag, FieldDiagnostic)]
+    reduced_diagnostics = []
+    omit_names = []
+    for pd, fd in itertools.product(particle_diag, field_diag):
+        if pd.name == fd.name:
+            if pd.period != fd.period or pd.dt_snapshot != fd.dt_snapshot:
+                raise ParsingError("Diagnostics with same name must have same period or if specified same dt_snapshot")
+            reduced_diagnostics.append(
+                _parse_one_diagnostic(pd.name, pd.data_list + fd.data_list, pd.period, pd.dt_snapshot))
+            omit_names.append(pd.name)
+
+    rest = [_parse_one_diagnostic(
+        d.name,
+        d.data_list,
+        d.period,
+        d.dt_snapshot
+    ) for d in diagnostics if d.name not in omit_names]
+
+    return reduced_diagnostics + rest
+
+
+def write_diagnostic(parsed_diag, dimension, opened_file):
+    axes = "xyz" if dimension == 3 else ("xy" if dimension == 2 else "x")
+    opened_file.write("begin:output\n")
+    opened_file.write("    name = {}\n".format(parsed_diag["name"]))
+    if "dt_snapshot" in parsed_diag:
+        opened_file.write("    dt_snapshot = {}\n".format(parsed_diag["dt_snapshot"]))
+    else:
+        opened_file.write("    nstep_snapshot = {}\n".format(parsed_diag["period"]))
+    dl = parsed_diag["data_list"]
+    if "position" in dl:
+        opened_file.write("    particles = always\n")
+    if "momentum" in dl:
+        for ax in axes:
+            opened_file.write("    p{} = always\n".format(ax))
+    if "weighting" in dl:
+        opened_file.write("    particle_weight = always\n")
+
+    if "E" in dl or "B" in dl or "J" in dl:
+        opened_file.write("    grid = always\n")
+    if "E" in dl:
+        for ax in axes:
+            opened_file.write("    e{} = always\n".format(ax))
+    if "B" in dl:
+        for ax in axes:
+            opened_file.write("    b{} = always\n".format(ax))
+    if "J" in dl:
+        for ax in axes:
+            opened_file.write("    j{} = always\n".format(ax))
+
+    opened_file.write("end:output\n\n")
