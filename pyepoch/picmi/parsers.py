@@ -1,3 +1,9 @@
+from copy import copy
+
+from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, PseudoRandomLayout
+from pyepoch.picmi.fbpic_charge_and_mass import particle_charge, particle_mass
+
+
 def write_control(grid, final_time, opened_file):
     opened_file.write("begin:control\n")
     opened_file.write("    nx = {}\n".format(int(grid.nx + 1)))
@@ -9,10 +15,62 @@ def write_control(grid, final_time, opened_file):
     opened_file.write("    y_max = {}\n".format(grid.ymax))
     opened_file.write("end:control\n\n")
 
-def write_boundary(grid, opened_file):
+
+def write_boundaries(grid, opened_file):
     opened_file.write("begin:boundaries\n")
     opened_file.write("    bc_x_min = {}\n".format(grid.bc_xmin))
     opened_file.write("    bc_x_max = {}\n".format(grid.bc_xmax))
     opened_file.write("    bc_y_min = {}\n".format(grid.bc_ymin))
     opened_file.write("    bc_y_max = {}\n".format(grid.bc_ymax))
     opened_file.write("end:boundaries\n\n")
+
+
+def _parse_one_layout_species(layout, species):
+    result = {
+        "name": species.name,
+        "type": species.particle_type,
+        "charge": species.charge,
+        "mass": species.mass,
+        "number_density": parse_expression(species.initial_distribution.density_expression)
+    }
+    if layout.n_macroparticles_per_cell:
+        result["nparticles_per_cell"] = layout.n_macroparticles_per_cell
+    elif layout.n_macroparticles:
+        result["nparticles"] = layout.n_macroparticles
+    return result
+
+
+def parse_layouts_species(layouts, species):
+    for layout, s in zip(layouts, species):
+        if isinstance(s, MultiSpecies):
+            for s_in in s.species_instances_list:
+                yield _parse_one_layout_species(layout, s_in)
+        else:
+            yield _parse_one_layout_species(layout, s)
+
+
+def infer_charge_mass(parsed_species):
+    result = copy(parsed_species)
+    if result["type"] and not result["charge"]:
+        result["charge"] = particle_charge[result["type"]]
+    if result["type"] and not result["mass"]:
+        result["mass"] = particle_mass[result["type"]]
+    return result
+
+
+def write_species(parsed_species, opened_file):
+    opened_file.write("begin:species\n")
+    opened_file.write("    name = {}\n".format(parsed_species["name"]))
+    opened_file.write("    charge = {}\n".format(parsed_species["charge"] / particle_charge["proton"]))
+    opened_file.write("    mass = {}\n".format(parsed_species["mass"] / particle_mass["electron"]))
+    if "nparticles_per_cell" in parsed_species:
+        opened_file.write("    nparticles_per_cell = {}\n".format(parsed_species["nparticles_per_cell"]))
+    if "nparticles" in parsed_species:
+        opened_file.write("    nparticles = {}\n".format(parsed_species["nparticles"]))
+    opened_file.write("    number_density = {}\n".format(parsed_species["number_density"]))
+    opened_file.write("end:species\n\n")
+
+
+def parse_expression(expression):
+    expression = expression.replace("where", "if").replace("&", " and ").replace(">", " gt ")
+    return expression.replace("<", " lt ").replace("==", " eq ").replace("|", " or ")

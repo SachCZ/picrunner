@@ -4,10 +4,9 @@ from copy import deepcopy
 
 import picmistandard
 from pyepoch.picmi.grids import Cartesian2DGrid
-from pyepoch.picmi.particles import MultiSpecies, AnalyticDistribution
-from pyepoch.picmi.fbpic_charge_and_mass import particle_charge, particle_mass
+from pyepoch.picmi.parsers import write_control, write_boundaries, parse_layouts_species, infer_charge_mass, \
+    write_species
 from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
-from pyepoch.picmi.particles import GriddedLayout, PseudoRandomLayout
 
 
 class Simulation(picmistandard.PICMI_Simulation):
@@ -18,11 +17,13 @@ class Simulation(picmistandard.PICMI_Simulation):
         if not isinstance(self.solver.grid, Cartesian2DGrid):
             raise Exception('pyepoch supports only Cartesian2DGrid')
         with open(file_name, "w") as f:
-            self._write_control(f)
-            self._write_boundaries(f)
-            layout_species = self._get_layout_species()
-            for s, layout in layout_species:
-                self._write_species(s, layout, f)
+            write_control(self.solver.grid, self.max_time, f)
+            write_boundaries(self.solver.grid, f)
+            parsed_species = parse_layouts_species(self.layouts, self.species)
+            parsed_species = [infer_charge_mass(ps) for ps in parsed_species]
+            for s in parsed_species:
+                write_species(s, f)
+
             for laser, method in zip(self.lasers, self.laser_injection_methods):
                 self._write_laser(laser, method, f)
             particle_diag = [diag for diag in self.diagnostics if isinstance(diag, ParticleDiagnostic)]
@@ -38,55 +39,6 @@ class Simulation(picmistandard.PICMI_Simulation):
             diagnostics = particle_diag + reduced_field_diag
             for diag in diagnostics:
                 self._write_diagnostics(diag, self.solver.grid, f)
-
-    def _get_layout_species(self):
-        for s, layout in zip(self.species, self.layouts):
-            if isinstance(s, MultiSpecies):
-                for s_in in s.species_instances_list:
-                    yield s_in, layout
-            else:
-                yield s, layout
-
-    def _write_control(self, opened_file):
-        grid = self.solver.grid
-
-        opened_file.write("begin:control\n")
-        opened_file.write("    nx = {}\n".format(int(grid.nx + 1)))
-        opened_file.write("    ny = {}\n".format(int(grid.ny + 1)))
-        opened_file.write("    t_end = {}\n".format(self.max_time))
-        opened_file.write("    x_min = {}\n".format(grid.xmin))
-        opened_file.write("    x_max = {}\n".format(grid.xmax))
-        opened_file.write("    y_min = {}\n".format(grid.ymin))
-        opened_file.write("    y_max = {}\n".format(grid.ymax))
-        opened_file.write("end:control\n\n")
-
-    def _write_boundaries(self, opened_file):
-        grid = self.solver.grid
-
-        opened_file.write("begin:boundaries\n")
-        opened_file.write("    bc_x_min = {}\n".format(grid.bc_xmin))
-        opened_file.write("    bc_x_max = {}\n".format(grid.bc_xmax))
-        opened_file.write("    bc_y_min = {}\n".format(grid.bc_ymin))
-        opened_file.write("    bc_y_max = {}\n".format(grid.bc_ymax))
-        opened_file.write("end:boundaries\n\n")
-
-    def _write_species(self, s, layout, opened_file):
-        charge = s.charge if s.charge else particle_charge[s.particle_type]
-        mass = s.charge if s.mass else particle_mass[s.particle_type]
-        opened_file.write("begin:species\n")
-        opened_file.write("    name = {}\n".format(s.name))
-        opened_file.write("    charge = {}\n".format(charge / particle_charge["proton"]))
-        opened_file.write("    mass = {}\n".format(mass / particle_mass["electron"]))
-        if isinstance(layout, GriddedLayout):
-            opened_file.write("    nparticles_per_cell = {}\n".format(layout.n_macroparticle_per_cell))
-        elif isinstance(layout, PseudoRandomLayout):
-            opened_file.write("    nparticles = {}\n".format(layout.n_macroparticles))
-        if isinstance(s.initial_distribution, AnalyticDistribution):
-            opened_file.write("    number_density = {}\n".format(s.initial_distribution.get_parsed_density_expresion()))
-        else:
-            raise Exception('pyepoch supports only analytic distribution for species initial distribution')
-
-        opened_file.write("end:species\n\n")
 
     def _write_laser(self, laser, method, opened_file):
 

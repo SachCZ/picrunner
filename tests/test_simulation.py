@@ -68,15 +68,12 @@ class TestShell(unittest.TestCase):
         )
         plasma_distribution = picmi.AnalyticDistribution(
             density_expression=initial_density,
-            lower_bound=[xmin, ymin],
-            upper_bound=[xmax, ymax],
             th=th
         )
 
         plasma = picmi.MultiSpecies(
             particle_types=["proton", "electron"],
             names=["proton", "electron"],
-            proportions=[0.5, 0.5],
             initial_distribution=plasma_distribution
         )
 

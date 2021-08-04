@@ -20,7 +20,7 @@ begin:species
     charge = 1.0
     mass = 1836.1526734400013
     nparticles = 250000
-    number_density = if((x gt 3*1e-06 + 5e-07), 0.0, if((x gt 3*1e-06 - 5e-07) and (x lt 3*1e-06 + 5e-07) and (sqrt(y^2) lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2) gt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07) and (sqrt(y^2) lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
+    number_density = if((x  gt  3*1e-06 + 5e-07), 0.0, if((x  gt  3*1e-06 - 5e-07)  and  (x  lt  3*1e-06 + 5e-07)  and  (sqrt(y^2)  lt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2)  gt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07)  and  (sqrt(y^2)  lt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
 end:species
 
 begin:species
@@ -28,7 +28,7 @@ begin:species
     charge = -1.0
     mass = 1.0
     nparticles = 250000
-    number_density = if((x gt 3*1e-06 + 5e-07), 0.0, if((x gt 3*1e-06 - 5e-07) and (x lt 3*1e-06 + 5e-07) and (sqrt(y^2) lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2) gt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07) and (sqrt(y^2) lt abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
+    number_density = if((x  gt  3*1e-06 + 5e-07), 0.0, if((x  gt  3*1e-06 - 5e-07)  and  (x  lt  3*1e-06 + 5e-07)  and  (sqrt(y^2)  lt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, if((sqrt(y^2)  gt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07)  and  (sqrt(y^2)  lt  abs(x - 5*1e-06) - sqrt(2.0) * 5e-07), 3.9688651341106803e+27, 0.0)
 end:species
 
 begin:constant
