@@ -8,14 +8,8 @@ def critical(omega):
     return omega ** 2 * m_e * epsilon_0 / e ** 2
 
 
-class TestShell(unittest.TestCase):
+class TestSimulation(unittest.TestCase):
     def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_simulation(self):
         micron = 1e-6
         femto = 1e-15
         xmin = -10 * micron
@@ -83,13 +77,13 @@ class TestShell(unittest.TestCase):
 
         laser = picmi.GaussianLaser(
             wavelength=lamb,
-            waist=2 / math.sqrt(2) * 2.5 * micron,  # TODO look into this
-            duration=max_time,  # TODO check it is max time
+            waist=2 / math.sqrt(2) * 2.5 * micron,
+            duration=max_time,
             E0=1e13
         )
         antena = picmi.LaserAntenna(
-            position=[xmin, (ymax + ymin) / 2],  # TODO Check it
-            normal_vector=[1, 0]  # TODO check it
+            position=[xmin, (ymax + ymin) / 2],
+            normal_vector=[0, 1]
         )
 
         normal_diag_particles = picmi.ParticleDiagnostic(
@@ -111,5 +105,10 @@ class TestShell(unittest.TestCase):
         simulation.add_laser(laser, injection_method=antena)
 
         simulation.add_species(plasma, plasma_layout)
+        self.simulation = simulation
 
-        simulation.write_input_file("input.deck")
+    def tearDown(self):
+        pass
+
+    def test_write_input_file(self):
+        self.simulation.write_input_file("input.deck")

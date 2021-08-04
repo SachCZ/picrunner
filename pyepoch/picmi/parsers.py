@@ -1,4 +1,5 @@
 import itertools
+import math
 from copy import copy
 
 from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
@@ -150,3 +151,50 @@ def write_diagnostic(parsed_diag, dimension, opened_file):
             opened_file.write("    j{} = always\n".format(ax))
 
     opened_file.write("end:output\n\n")
+
+
+def parse_laser_method(laser, method, grid):
+    if not len(method.position) == 2:
+        raise ParsingError('pyepoch supports only 2d geometry')
+    result = {
+        "lambda": laser.wavelength,
+        "amp": laser.E0,
+        "epoch_gauss_w": laser.waist * math.sqrt(2) / 2
+    }
+    if method.position[0] == grid.xmin:
+        if method.normal_vector != [0, 1]:
+            raise ParsingError("Only normal_vector [0, 1] is possible for laser at xmin")
+        result["boundary"] = "x_min"
+        result["r_expression"] = "sqrt((y - {})^2)".format(method.position[1])
+    elif method.position[0] == grid.xmax:
+        if method.normal_vector != [0, -1]:
+            raise ParsingError("Only normal_vector [0, -1] is possible for laser at xmax")
+        result["boundary"] = "x_max"
+        result["r_expression"] = "sqrt((y - {})^2)".format(method.position[1])
+    elif method.position[1] == grid.ymin:
+        if method.normal_vector != [1, 0]:
+            raise ParsingError("Only normal_vector [1, 0] is possible for laser at ymin")
+        result["boundary"] = "y_min"
+        result["r_expression"] = "sqrt((x - {})^2)".format(method.position[0])
+    elif method.position[1] == grid.ymax:
+        if method.normal_vector != [-1, 0]:
+            raise ParsingError("Only normal_vector [-1, 0] is possible for laser at ymin")
+        result["boundary"] = "y_max"
+        result["r_expression"] = "sqrt((x - {})^2)".format(method.position[0])
+    else:
+        raise ParsingError('pyepoch supports only laser antenna at boundary')
+
+    return result
+
+
+def write_laser(parsed_laser, opened_file):
+    opened_file.write("begin:constant\n")
+    opened_file.write("    r = {}\n".format(parsed_laser["r_expression"]))
+    opened_file.write("end:constant\n\n")
+
+    opened_file.write("begin:laser\n")
+    opened_file.write("    boundary = {}\n".format(parsed_laser["boundary"]))
+    opened_file.write("    amp = {}\n".format(parsed_laser["amp"]))
+    opened_file.write("    lambda = {}\n".format(parsed_laser["lambda"]))
+    opened_file.write("    profile = gauss(r, 0.0, {})\n".format(parsed_laser["epoch_gauss_w"]))
+    opened_file.write("end:laser\n\n")

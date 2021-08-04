@@ -6,7 +6,7 @@ from pyepoch.picmi.exceptions import UnsupportedArgError, UnsupportedClassError
 from pyepoch.picmi.solvers import ElectromagneticSolver, ElectrostaticSolver, InvalidMethodError
 from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, AnalyticDistribution, Species, PseudoRandomLayout, \
     UniformDistribution, ParticleListDistribution, GaussianBunchDistribution
-from pyepoch.picmi.lasers import LaserAntenna, GaussianLaser
+from pyepoch.picmi.lasers import LaserAntenna, GaussianLaser, AnalyticLaser
 from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic, ElectrostaticFieldDiagnostic, \
     LabFrameFieldDiagnostic, LabFrameParticleDiagnostic, InvalidDataError
 from pyepoch.picmi.applied_fields import AnalyticAppliedField, ConstantAppliedField, Mirror

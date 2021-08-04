@@ -1,10 +1,11 @@
+import math
 import unittest
 from io import StringIO
 
 from pyepoch import picmi
 from scipy.constants import e, m_p, m_e
 from pyepoch.picmi.parsers import write_control, write_boundaries, parse_expression, parse_layouts_species, \
-    infer_charge_mass, write_species, parse_diagnostics, write_diagnostic
+    infer_charge_mass, write_species, parse_diagnostics, write_diagnostic, parse_laser_method, write_laser
 
 
 class TestParsers(unittest.TestCase):
@@ -199,4 +200,46 @@ class TestParsers(unittest.TestCase):
             "    ex = always\n"
             "    ey = always\n"
             "end:output\n\n"
+        ))
+
+    def test_parse_laser(self):
+        method = picmi.LaserAntenna(
+            position=[self.grid.xmin, 10],
+            normal_vector=[0, 1]
+        )
+        laser = picmi.GaussianLaser(
+            wavelength=100,
+            waist=2 / math.sqrt(2) * 50,
+            duration=self.max_time,
+            E0=1e13
+        )
+        result = parse_laser_method(laser, method, self.grid)
+        self.assertEqual(result["lambda"], 100)
+        self.assertAlmostEqual(result["amp"], 1e13)
+        self.assertAlmostEqual(result["epoch_gauss_w"], 50)
+        self.assertEqual(result["boundary"], "x_min")
+        self.assertEqual(result["r_expression"], "sqrt((y - 10)^2)")
+
+    def test_write_laser(self):
+        parsed_laser = {
+            "lambda": 100,
+            "amp": 33,
+            "epoch_gauss_w": 5,
+            "boundary": "xmin",
+            "r_expression": "sqrt((y-0)^2)"
+        }
+        with StringIO("") as s:
+            write_laser(parsed_laser, s)
+            result = s.getvalue()
+
+        self.assertEqual(result, (
+            "begin:constant\n"
+            "    r = sqrt((y-0)^2)\n"
+            "end:constant\n\n"
+            "begin:laser\n"
+            "    boundary = xmin\n"
+            "    amp = 33\n"
+            "    lambda = 100\n"
+            "    profile = gauss(r, 0.0, 5)\n"
+            "end:laser\n\n"
         ))
