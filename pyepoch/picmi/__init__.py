@@ -8,6 +8,7 @@ from pyepoch.picmi.particles import MultiSpecies, GriddedLayout, AnalyticDistrib
     UniformDistribution, ParticleListDistribution, GaussianBunchDistribution
 from pyepoch.picmi.lasers import LaserAntenna, GaussianLaser
 from pyepoch.picmi.diagnostics import ParticleDiagnostic, FieldDiagnostic
+from pyepoch.picmi.applied_fields import AnalyticAppliedField, ConstantAppliedField, Mirror
 
 
 class Constants:
